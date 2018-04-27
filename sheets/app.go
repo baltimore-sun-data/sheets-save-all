@@ -21,8 +21,10 @@ func FromArgs(args []string) *Config {
 	fl := flag.NewFlagSet("sheets-save-all", flag.ExitOnError)
 	fl.StringVar(&conf.SheetID, "sheet", "", "Google Sheet ID (default $GOOGLE_CLIENT_SECRET)")
 	fl.StringVar(&conf.ClientSecret, "client-secret", "", "Google client secret")
-	fl.StringVar(&conf.PathTemplate, "path", "{{.Properties.Title}}", "Path to save files in")
-	fl.StringVar(&conf.FileTemplate, "filename", "{{.Properties.Index}} {{.Properties.Title}}.csv", "File name for files")
+	fl.StringVar(&conf.PathTemplate, "path", "{{.Properties.Title}}", "path to save files in")
+	fl.StringVar(&conf.FileTemplate, "filename", "{{.Properties.Index}} {{.Properties.Title}}.csv",
+		"file name for files")
+	fl.BoolVar(&conf.UseCRLF, "crlf", false, "use Windows-style line endings")
 
 	quiet := fl.Bool("quiet", false, "don't log activity")
 	fl.Usage = func() {
@@ -61,6 +63,7 @@ type Config struct {
 	ClientSecret string
 	PathTemplate string
 	FileTemplate string
+	UseCRLF      bool
 	Logger       *log.Logger
 }
 
@@ -123,6 +126,7 @@ func (c *Config) makeCSV(dir, file string, rows [][]spreadsheet.Cell) error {
 	defer f.Close()
 
 	w := csv.NewWriter(f)
+	w.UseCRLF = c.UseCRLF
 	defer w.Flush()
 
 	for _, row := range rows {

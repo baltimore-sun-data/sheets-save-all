@@ -25,10 +25,12 @@ Usage of sheets-save-all:
 
   -client-secret string
         Google client secret
+  -crlf
+        use Windows-style line endings
   -filename string
-        File name for files (default "{{.Properties.Index}} {{.Properties.Title}}.csv")
+        file name for files (default "{{.Properties.Index}} {{.Properties.Title}}.csv")
   -path string
-        Path to save files in (default "{{.Properties.Title}}")
+        path to save files in (default "{{.Properties.Title}}")
   -quiet
         don't log activity
   -sheet string
