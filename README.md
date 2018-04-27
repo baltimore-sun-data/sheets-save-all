@@ -1,5 +1,5 @@
 # sheets-save-all
-Save all sheets in a Google Sheets doc as CSV. Requires an API token to access Google Sheets.
+Save all sheets in a Google Sheets doc as CSV. Requires an [OAuth 2.0 token](https://support.google.com/googleapi/answer/6158849) to access Google Sheets.
 
 
 ## Installation
