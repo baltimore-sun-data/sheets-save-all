@@ -118,18 +118,19 @@ func (c *Config) Exec() error {
 	return nil
 }
 
-func (c *Config) makeCSV(dir, file string, rows [][]spreadsheet.Cell) error {
+func (c *Config) makeCSV(dir, file string, rows [][]spreadsheet.Cell) (err error) {
 	pathname := filepath.Join(dir, file)
 	c.Logger.Printf("writing file: %s", pathname)
 	f, err := os.Create(pathname)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer deferClose(&err, f.Close)
 
 	w := csv.NewWriter(f)
 	w.UseCRLF = c.UseCRLF
 	defer w.Flush()
+	defer deferClose(&err, w.Error)
 
 	for _, row := range rows {
 		record := make([]string, 0, len(row))
@@ -154,4 +155,11 @@ func blank(record []string) bool {
 		}
 	}
 	return true
+}
+
+func deferClose(err *error, f func() error) {
+	newErr := f()
+	if *err == nil && newErr != nil {
+		*err = fmt.Errorf("problem closing: %v", newErr)
+	}
 }
