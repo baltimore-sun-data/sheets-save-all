@@ -5,10 +5,12 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"golang.org/x/oauth2/google"
 	spreadsheet "gopkg.in/Iwark/spreadsheet.v2"
@@ -19,10 +21,15 @@ func FromArgs(args []string) *Config {
 	fl := flag.NewFlagSet("sheets-save-all", flag.ExitOnError)
 	fl.StringVar(&conf.SheetID, "sheet", "", "Google Sheet ID (default $GOOGLE_CLIENT_SECRET)")
 	fl.StringVar(&conf.ClientSecret, "client-secret", "", "Google client secret")
+	fl.StringVar(&conf.PathTemplate, "path", "{{.Properties.Title}}", "Path to save files in")
+	fl.StringVar(&conf.FileTemplate, "filename", "{{.Properties.Index}} {{.Properties.Title}}.csv", "File name for files")
+
 	quiet := fl.Bool("quiet", false, "don't log activity")
 	fl.Usage = func() {
 		fmt.Fprintf(os.Stderr,
 			`sheets-save-all is a tool to save all sheets in Google Sheets document.
+
+-path and -filename are Go templates and can use any property of the document or sheet object respectively. See gopkg.in/Iwark/spreadsheet.v2 for properties.
 
 Usage of sheets-save-all:
 
@@ -52,12 +59,23 @@ var (
 type Config struct {
 	SheetID      string
 	ClientSecret string
+	PathTemplate string
+	FileTemplate string
 	Logger       *log.Logger
 }
 
 func (c *Config) Exec() error {
 	if c.SheetID == "" {
 		return ErrNoSheet
+	}
+
+	pt, err := template.New("path").Parse(c.PathTemplate)
+	if err != nil {
+		return fmt.Errorf("path template problem: %v", err)
+	}
+	ft, err := template.New("file").Parse(c.FileTemplate)
+	if err != nil {
+		return fmt.Errorf("file path template problem: %v", err)
 	}
 
 	c.Logger.Printf("Connecting to Google Sheets for %q", c.SheetID)
@@ -74,10 +92,20 @@ func (c *Config) Exec() error {
 		return fmt.Errorf("failure getting Google Sheet: %v", err)
 	}
 
-	dir := doc.Properties.Title
+	var buf strings.Builder
+	if err = pt.Execute(&buf, doc); err != nil {
+		return fmt.Errorf("could not use path template: %v", err)
+	}
+	dir := buf.String()
+
 	os.MkdirAll(dir, os.ModePerm)
 	for _, s := range doc.Sheets {
-		file := fmt.Sprintf("%s.csv", s.Properties.Title)
+		buf.Reset()
+		if err = ft.Execute(&buf, s); err != nil {
+			return fmt.Errorf("could not use file path template: %v", err)
+		}
+		file := buf.String()
+
 		if err = c.makeCSV(dir, file, s.Rows); err != nil {
 			return err
 		}
