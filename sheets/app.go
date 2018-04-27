@@ -81,7 +81,7 @@ func (c *Config) Exec() error {
 		return fmt.Errorf("file path template problem: %v", err)
 	}
 
-	c.Logger.Printf("Connecting to Google Sheets for %q", c.SheetID)
+	c.Logger.Printf("connecting to Google Sheets for %q", c.SheetID)
 
 	conf, err := google.JWTConfigFromJSON([]byte(c.ClientSecret), spreadsheet.Scope)
 	if err != nil {
@@ -94,6 +94,8 @@ func (c *Config) Exec() error {
 	if err != nil {
 		return fmt.Errorf("failure getting Google Sheet: %v", err)
 	}
+
+	c.Logger.Printf("got %q", doc.Properties.Title)
 
 	var buf strings.Builder
 	if err = pt.Execute(&buf, doc); err != nil {
@@ -118,7 +120,7 @@ func (c *Config) Exec() error {
 
 func (c *Config) makeCSV(dir, file string, rows [][]spreadsheet.Cell) error {
 	pathname := filepath.Join(dir, file)
-	c.Logger.Printf("Writing file: %s", pathname)
+	c.Logger.Printf("writing file: %s", pathname)
 	f, err := os.Create(pathname)
 	if err != nil {
 		return err
