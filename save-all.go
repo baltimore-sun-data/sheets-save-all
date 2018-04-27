@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 
@@ -9,10 +8,9 @@ import (
 )
 
 func main() {
-	flag.Parse()
-	doc := flag.Arg(0)
-	if err := sheets.Save(doc); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v", err)
+	c := sheets.FromArgs(os.Args[1:])
+	if err := c.Exec(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 }

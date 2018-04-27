@@ -3,6 +3,7 @@ package sheets
 import (
 	"context"
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -12,19 +13,46 @@ import (
 	spreadsheet "gopkg.in/Iwark/spreadsheet.v2"
 )
 
-var ClientSecret = []byte(os.Getenv("GOOGLE_CLIENT_SECRET"))
+func FromArgs(args []string) *Config {
+	conf := &Config{}
+	fl := flag.NewFlagSet("sheets-save-all", flag.ExitOnError)
+	fl.StringVar(&conf.SheetID, "sheet", "", "Google Sheet ID (default $GOOGLE_CLIENT_SECRET)")
+	fl.StringVar(&conf.ClientSecret, "client-secret", "", "Google client secret")
+	fl.Usage = func() {
+		fmt.Fprintf(os.Stderr,
+			`sheets-save-all is a tool to save all sheets in Google Sheets document.
 
-func Save(sheetID string) error {
-	log.Printf("Connecting to Google Sheets for %q", sheetID)
+Usage of sheets-save-all:
 
-	conf, err := google.JWTConfigFromJSON(ClientSecret, spreadsheet.Scope)
+`,
+		)
+		fl.PrintDefaults()
+	}
+	_ = fl.Parse(args)
+
+	if conf.ClientSecret == "" {
+		conf.ClientSecret = os.Getenv("GOOGLE_CLIENT_SECRET")
+	}
+
+	return conf
+}
+
+type Config struct {
+	SheetID      string
+	ClientSecret string
+}
+
+func (c *Config) Exec() error {
+	log.Printf("Connecting to Google Sheets for %q", c.SheetID)
+
+	conf, err := google.JWTConfigFromJSON([]byte(c.ClientSecret), spreadsheet.Scope)
 	if err != nil {
 		return fmt.Errorf("could not parse credentials: %v", err)
 	}
 
 	client := conf.Client(context.Background())
 	service := spreadsheet.NewServiceWithClient(client)
-	doc, err := service.FetchSpreadsheet(sheetID)
+	doc, err := service.FetchSpreadsheet(c.SheetID)
 	if err != nil {
 		return fmt.Errorf("failure getting Google Sheet: %v", err)
 	}
