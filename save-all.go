@@ -68,7 +68,7 @@ func makeCSV(dir, file string, rows [][]spreadsheet.Cell) error {
 			record = append(record, cell.Value)
 		}
 		if blank(record) {
-			return nil
+			continue
 		}
 		err = w.Write(record)
 		if err != nil {
