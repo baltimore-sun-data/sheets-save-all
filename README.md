@@ -24,7 +24,7 @@ or sheet object respectively. See gopkg.in/Iwark/spreadsheet.v2 for properties.
 Usage of sheets-save-all:
 
   -client-secret string
-        Google client secret
+        Google client secret (default $GOOGLE_CLIENT_SECRET)
   -crlf
         use Windows-style line endings
   -filename string
@@ -34,5 +34,5 @@ Usage of sheets-save-all:
   -quiet
         don't log activity
   -sheet string
-        Google Sheet ID (default $GOOGLE_CLIENT_SECRET)
+        Google Sheet ID
 ```

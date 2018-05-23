@@ -19,8 +19,8 @@ import (
 func FromArgs(args []string) *Config {
 	conf := &Config{}
 	fl := flag.NewFlagSet("sheets-save-all", flag.ExitOnError)
-	fl.StringVar(&conf.SheetID, "sheet", "", "Google Sheet ID (default $GOOGLE_CLIENT_SECRET)")
-	fl.StringVar(&conf.ClientSecret, "client-secret", "", "Google client secret")
+	fl.StringVar(&conf.SheetID, "sheet", "", "Google Sheet ID")
+	fl.StringVar(&conf.ClientSecret, "client-secret", "", "Google client secret (default $GOOGLE_CLIENT_SECRET)")
 	fl.StringVar(&conf.PathTemplate, "path", "{{.Properties.Title}}", "path to save files in")
 	fl.StringVar(&conf.FileTemplate, "filename", "{{.Properties.Index}} {{.Properties.Title}}.csv",
 		"file name for files")
